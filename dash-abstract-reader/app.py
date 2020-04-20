@@ -13,15 +13,19 @@ from dash.dependencies import Input, Output
 from sqlalchemy import create_engine
 
 
-engine = create_engine('sqlite:///data/term_miner.sqlite3')
+engine = create_engine('sqlite:////data/term_miner.sqlite3')
 dh = DataHelper(engine)
 backend = EMMA(dh)
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+dash_app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+flask_app = dash_app.server
 
-app.layout = html.Div(children=[
+dash_app.title = 'Explore MetaMap Annotations (EMMA)'
+
+dash_app.layout = html.Div(children=[
+
     dcc.Store(id='selected-concept'),
 
     html.H1(children='Explore MetaMap Annotations (EMMA)'),
@@ -94,7 +98,7 @@ app.layout = html.Div(children=[
 ])
 
 
-@app.callback(
+@dash_app.callback(
     Output(component_id='table', component_property='data'),
     [Input(component_id='bg-query-selection', component_property='value'),
      Input(component_id='fg-query-selection', component_property='value')]
@@ -106,7 +110,7 @@ def update_terms_table(bg_query_id, fg_query_id):
         return backend.dict_terms_table(int(bg_query_id), int(fg_query_id))
 
 
-@app.callback(
+@dash_app.callback(
     Output(component_id='table', component_property='selected_rows'),
     [Input(component_id='bg-query-selection', component_property='value'),
      Input(component_id='fg-query-selection', component_property='value')]
@@ -115,7 +119,7 @@ def update_table_selection(bg_query_id, fg_query_id):
     return []
 
 
-@app.callback(
+@dash_app.callback(
     Output(component_id='bg-query-details', component_property='children'),
     [Input(component_id='bg-query-selection', component_property='value')]
 )
@@ -123,7 +127,7 @@ def update_query_details(query_id):
     return backend.query_string(int(query_id))
 
 
-@app.callback(
+@dash_app.callback(
     Output(component_id='fg-query-details', component_property='children'),
     [Input(component_id='fg-query-selection', component_property='value')]
 )
@@ -131,7 +135,7 @@ def update_query_details(query_id):
     return backend.query_string(int(query_id))
 
 
-@app.callback(
+@dash_app.callback(
     Output(component_id='selected-concept', component_property='data'),
     [Input(component_id='table', component_property='selected_rows'),
      Input(component_id='bg-query-selection', component_property='value'),
@@ -143,7 +147,7 @@ def update_selected_concept(row, bg_query, fg_query):
     return backend.look_up_concept_id(row[0], int(bg_query), int(fg_query))
 
 
-@app.callback(
+@dash_app.callback(
     Output(component_id='selection-info', component_property='children'),
     [Input(component_id='selected-concept', component_property='data')]
 )
@@ -193,7 +197,7 @@ def format_abstract(abstract):
     )
 
 
-@app.callback(
+@dash_app.callback(
     Output(component_id='abstracts-div', component_property='children'),
     [Input(component_id='selected-concept', component_property='data'),
      Input(component_id='bg-query-selection', component_property='value'),
@@ -204,7 +208,3 @@ def update_abstracts(concept_id, bg_query, fg_query):
         return []
     abstract_data = backend.get_annotated_abstracts(concept_id, int(bg_query), int(fg_query))
     return [format_abstract(a) for a in abstract_data]
-
-
-if __name__ == '__main__':
-    app.run_server(debug=True)

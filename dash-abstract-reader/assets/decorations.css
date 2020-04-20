@@ -1,0 +1,16 @@
+.abstract-title {
+    background-color: #FFE0E0;
+}
+
+.verbatim-box {
+    background-color: #E0FFFF;
+    font-family: monospace;
+}
+
+.small-note {
+    font-size: small;
+}
+
+#table {
+    z-index: 0;
+}

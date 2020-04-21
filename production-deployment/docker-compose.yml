@@ -1,0 +1,9 @@
+version: '3'
+services:
+    emma_web:
+        build: .
+        volumes:
+            - ../data:/data:ro
+        ports:
+            - '5000:5000'
+        restart: 'on-failure:3'
